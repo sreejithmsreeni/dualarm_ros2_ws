@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="joint_transmission" params="joint_name">
+    <transmission name="${joint_name}_transmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${joint_name}">
+        <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${joint_name}_motor">
+        <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+  </xacro:macro>
+
+  <xacro:joint_transmission joint_name="left_joint1"/>
+  <xacro:joint_transmission joint_name="left_joint2"/>
+  <xacro:joint_transmission joint_name="left_joint3"/>
+  <xacro:joint_transmission joint_name="left_joint4"/>
+  <xacro:joint_transmission joint_name="left_joint5"/>
+  <xacro:joint_transmission joint_name="left_joint6"/>
+  <xacro:joint_transmission joint_name="left_joint7"/>
+
+  <xacro:joint_transmission joint_name="right_joint1"/>
+  <xacro:joint_transmission joint_name="right_joint2"/>
+  <xacro:joint_transmission joint_name="right_joint3"/>
+  <xacro:joint_transmission joint_name="right_joint4"/>
+  <xacro:joint_transmission joint_name="right_joint5"/>
+  <xacro:joint_transmission joint_name="right_joint6"/>
+  <xacro:joint_transmission joint_name="right_joint7"/>  
+
+</robot>

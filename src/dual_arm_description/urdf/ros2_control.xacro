@@ -1,0 +1,284 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <ros2_control name="dual_arm_control" type="system">
+    <hardware>
+      <plugin>ethercat_driver/EthercatDriver</plugin>
+      <param name="master_id">0</param>
+      <param name="control_frequency">500</param>
+    </hardware>
+
+    <gpio name="SW4_hub">
+      <ec_module name="SW4_hub">
+        <plugin>ethercat_generic_plugins/GenericEcSlave</plugin>
+        <param name="alias">0</param>
+        <param name="position">0</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_10.yaml</param>
+      </ec_module>
+    </gpio>
+
+
+
+<!-- Left ARM -->
+    <joint name="right_joint1">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="effort"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_11">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">1</param>
+        
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_11.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint2">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_12">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">2</param>
+
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_12.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint3">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_13">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">3</param>
+        <param name="mode_of_operation">8</param>
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_13.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint4">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_14">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">4</param>
+
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_14.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint5">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_15">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">5</param>
+
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_15.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint6">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_16">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">6</param>
+        <param name="mode_of_operation">8</param>
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_16.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="right_joint7">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_17">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">7</param>
+
+ 
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_17.yaml</param>
+      </ec_module>
+    </joint>
+
+<!-- Right Flange -->
+
+    <gpio name="right_flange_gpio">
+      <command_interface name="flange_output"/>
+      <state_interface name="flange_input"/>
+
+      <ec_module name="right_flange_gateway">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_18.yaml</param>
+      </ec_module>
+    </gpio>
+
+
+<!-- Left ARM -->
+
+    <joint name="left_joint1">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="effort"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_21">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">9</param>
+
+
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_21.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint2">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_22">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">10</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_22.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint3">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_23">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">11</param>
+        <param name="mode_of_operation">8</param>
+        
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_23.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint4">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_24">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">12</param>
+        <param name="mode_of_operation">8</param>
+        
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_24.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint5">
+      <command_interface name="position"/>
+<command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_25">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">13</param>
+        <param name="mode_of_operation">8</param>
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_25.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint6">
+      <command_interface name="position"/>
+    <command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_26">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">14</param>
+        <param name="mode_of_operation">8</param>
+
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_26.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="left_joint7">
+      <command_interface name="position"/>
+      <command_interface name="reset_fault"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_27">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">15</param>
+        <param name="mode_of_operation">8</param>
+
+
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_27.yaml</param>
+      </ec_module>
+    </joint>
+
+    <gpio name="left_flange_gpio">
+      <command_interface name="flange_output"/>
+      <state_interface name="flange_input"/>
+
+      <ec_module name="left_flange_gateway">
+        <plugin>ethercat_generic_plugins/GenericEcSlave</plugin>
+        <param name="alias">0</param>
+        <param name="position">16</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_28.yaml</param>
+      </ec_module>
+    </gpio>
+
+  </ros2_control>
+
+</robot>
+     

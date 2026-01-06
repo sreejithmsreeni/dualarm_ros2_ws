@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="default_inertial">
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+    </inertial>
+  </xacro:macro>
+
+  <link name="left_base">
+    <visual>
+      <geometry>
+        <mesh filename="package://dual_arm_description/meshes/BASE_Mesh.obj"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://dual_arm_description/meshes/BASE_Mesh.obj"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <!-- <joint name="world_to_left_base" type="fixed">
+    <origin xyz="-0.1 0 1.0" rpy="0 -1.57079632679 0"/>
+    <parent link="world"/>
+    <child link="left_base"/>
+  </joint> -->
+
+  <!-- left Arm Links -->
+  <link name="left_link1">
+    <visual>
+      <origin xyz="0.0000008 0 0"/>
+      <geometry>
+        <mesh filename="package://dual_arm_description/meshes/LINK1_Mesh.obj"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0000008 0 0"/>
+      <geometry>
+        <mesh filename="package://dual_arm_description/meshes/LINK1_Mesh.obj"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint1" type="revolute">
+    <parent link="left_base"/>
+    <child link="left_link1"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.05433" upper="3.05433" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_link2">
+    <visual>
+      <geometry><mesh filename="package://dual_arm_description/meshes/link2_Mesh.obj"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <geometry><mesh filename="package://dual_arm_description/meshes/link2_Mesh.obj"/></geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint2" type="revolute">
+    <parent link="left_link1"/>
+    <child link="left_link2"/>
+    <origin xyz="0 0 0.1743"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-2.00713" upper="2.00713" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_link3">
+    <visual>
+      <origin rpy="0 0 3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK3_LOWER_Mesh.obj"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <visual>
+      <origin rpy="0 0 3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK3_UPPER_Mesh.obj"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK3_LOWER_Mesh.obj"/></geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK3_UPPER_Mesh.obj"/></geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint3" type="revolute">
+    <parent link="left_link2"/>
+    <child link="left_link3"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.05433" upper="3.05433" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_link4">
+    <visual>
+      <origin rpy="0 0 -3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK4_Mesh.obj"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 -3.1415"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK4_Mesh.obj"/></geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint4" type="revolute">
+    <parent link="left_link3"/>
+    <child link="left_link4"/>
+    <origin xyz="-0.018 0 0.287"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-2.44346" upper="0.959931" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_link5">
+    <visual>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK5_Mesh.obj"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK5_Mesh.obj"/></geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint5" type="revolute">
+    <parent link="left_link4"/>
+    <child link="left_link5"/>
+    <origin xyz="0.018 0 0.314"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.05433" upper="3.05433" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_link6">
+    <visual>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK6_Mesh.obj"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry><mesh filename="package://dual_arm_description/meshes/LINK6_Mesh.obj"/></geometry>
+    </collision>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint6" type="revolute">
+    <parent link="left_link5"/>
+    <child link="left_link6"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-0.959931" upper="0.959931" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_ttt">
+    <visual>
+      <origin rpy="3.1415 -1.5707 0"/>
+      <geometry><mesh filename="package://dual_arm_description/meshes/tn__T_Arm_MarvinM6SLCCS_WKe8HJ_01_Mesh.obj"/></geometry>
+    </visual>
+    <xacro:default_inertial/>
+  </link>
+  <joint name="left_joint7" type="revolute">
+    <parent link="left_link6"/>
+    <child link="left_ttt"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.48353" upper="1.48353" effort="100" velocity="6.28"/>
+  </joint>
+
+  <link name="left_flange"/>
+  <joint name="left_flange_joint" type="fixed">
+    <parent link="left_ttt"/>
+    <child link="left_flange"/>
+    <origin xyz="0 0 0.088"/>
+  </joint>
+
+</robot>

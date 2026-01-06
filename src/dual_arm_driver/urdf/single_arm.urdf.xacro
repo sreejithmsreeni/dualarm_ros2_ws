@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="omg_sohard">
+
+  <!-- Arguments -->
+  <xacro:arg name="mesh_pkg" default="dual_arm_driver"/>  <!-- your package containing meshes -->
+  <xacro:arg name="mesh_dir" default="urdf/meshes"/>                <!-- subfolder with meshes -->
+  <xacro:arg name="use_collision" default="true"/>
+
+  <!-- Constants -->
+  <xacro:property name="PI" value="3.141592653589793"/>
+  <xacro:property name="INF_EFFORT" value="10000000."/>
+  <xacro:property name="MAX_VEL" value="6.2831853"/>
+
+  <!-- Helper macros -->
+  <xacro:macro name="visual_mesh" params="path scale:='1. 1. 1.' origin_xyz:='0. 0. 0.' origin_rpy:='0. 0. 0.'">
+    <visual>
+      <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+      <geometry>
+        <mesh filename="package://${mesh_pkg}/${mesh_dir}/${path}" scale="${scale}"/>
+      </geometry>
+    </visual>
+  </xacro:macro>
+
+  <xacro:macro name="collision_mesh" params="path scale:='1. 1. 1.' origin_xyz:='0. 0. 0.' origin_rpy:='0. 0. 0.'">
+    <xacro:if value="${use_collision}">
+      <collision>
+        <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+        <geometry>
+          <mesh filename="package://${mesh_pkg}/${mesh_dir}/${path}" scale="${scale}"/>
+        </geometry>
+      </collision>
+    </xacro:if>
+  </xacro:macro>
+
+  <!-- World fixed to base -->
+  <joint name="FixedJoint" type="fixed">
+    <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+    <parent link="World"/>
+    <child link="base"/>
+  </joint>
+
+  <joint name="Joint1" type="revolute">
+    <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+    <parent link="base"/>
+    <child link="link1"/>
+    <axis xyz="0. 0. 1."/>
+    <limit lower="-3.1066861" upper="3.1066861" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint2" type="revolute">
+    <origin xyz="0. 0. 0.1743" rpy="0. 0. 0."/>
+    <parent link="link1"/>
+    <child link="link2"/>
+    <axis xyz="0. 1. 0."/>
+    <limit lower="-2.0943951" upper="2.0943951" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint3" type="revolute">
+    <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+    <parent link="link2"/>
+    <child link="link3"/>
+    <axis xyz="0. 0. 1."/>
+    <limit lower="-3.1066861" upper="3.1066861" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint4" type="revolute">
+    <origin xyz="-0.018 0. 0.287" rpy="0. 0. 0."/>
+    <parent link="link3"/>
+    <child link="link4"/>
+    <axis xyz="0. 1. 0."/>
+    <limit lower="-2.5307274" upper="1.0471976" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint5" type="revolute">
+    <origin xyz="0.018 0. 0.314" rpy="0. 0. 0."/>
+    <parent link="link4"/>
+    <child link="link5"/>
+    <axis xyz="0. 0. 1."/>
+    <limit lower="-3.1066861" upper="3.1066861" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint6" type="revolute">
+    <origin xyz="0. 0. -0." rpy="0. 0. 0."/>
+    <parent link="link5"/>
+    <child link="link6"/>
+    <axis xyz="0. 1. 0."/>
+    <limit lower="-1.0471976" upper="1.0471976" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="Joint7" type="revolute">
+    <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+    <parent link="link6"/>
+    <child link="ttt"/>
+    <axis xyz="1. 0. 0."/>
+    <limit lower="-1.5707963" upper="1.5707963" effort="${INF_EFFORT}" velocity="${MAX_VEL}"/>
+  </joint>
+
+  <joint name="JointF" type="fixed">
+    <origin xyz="0. 0. 0.088" rpy="0. 0. 0."/>
+    <parent link="ttt"/>
+    <child link="flange"/>
+  </joint>
+
+  <!-- Links -->
+  <link name="World">
+    <xacro:visual_mesh path="CollisionMesh.obj"/>
+  </link>
+
+  <link name="base">
+    <xacro:visual_mesh path="BASE_Mesh.obj"/>
+    <xacro:collision_mesh path="BASE_Mesh.obj"/>
+  </link>
+
+  <link name="flange"/>
+
+  <link name="link1">
+    <xacro:visual_mesh path="LINK1_Mesh.obj" origin_xyz="0.0000008 0. 0."/>
+    <xacro:collision_mesh path="LINK1_Mesh.obj" origin_xyz="0.0000008 0. 0."/>
+  </link>
+
+  <link name="link2">
+    <xacro:visual_mesh path="link2_Mesh.obj"/>
+    <xacro:collision_mesh path="link2_Mesh.obj"/>
+  </link>
+
+  <link name="link3">
+    <xacro:visual_mesh path="LINK3_LOWER_Mesh.obj" origin_rpy="0. 0. ${PI}"/>
+    <xacro:visual_mesh path="LINK3_UPPER_Mesh.obj" origin_rpy="0. 0. ${PI}"/>
+    <xacro:collision_mesh path="LINK3_LOWER_Mesh.obj" origin_rpy="0. 0. ${PI}"/>
+    <xacro:collision_mesh path="LINK3_UPPER_Mesh.obj" origin_rpy="0. 0. ${PI}"/>
+  </link>
+
+  <link name="link4">
+    <xacro:visual_mesh path="LINK4_Mesh.obj" origin_rpy="0. 0. -${PI}"/>
+    <xacro:collision_mesh path="LINK4_Mesh.obj" origin_rpy="0. 0. -${PI}"/>
+  </link>
+
+  <link name="link5">
+    <xacro:visual_mesh path="LINK5_Mesh.obj"/>
+    <xacro:collision_mesh path="LINK5_Mesh.obj"/>
+  </link>
+
+  <link name="link6">
+    <xacro:visual_mesh path="LINK6_Mesh.obj"/>
+  </link>
+
+  <link name="ttt">
+    <xacro:visual_mesh path="tn__T_Arm_MarvinM6SLCCS_WKe8HJ_01_Mesh.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_01.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_02.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_03.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_04.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_05.obj" origin_rpy="${PI} -1.5707964 0."/>
+    <xacro:visual_mesh path="Mesh_06.obj" origin_rpy="${PI} -1.5707964 0."/>
+  </link>
+  
+  <end_effector name="gripper" parent_link="flange" group="trajectory_controller"/>
+
+  
+  <!-- ROS2 Control: EtherCAT CiA402 mapping -->
+  <ros2_control name="dual_arm_control" type="system">
+    <hardware>
+      <plugin>ethercat_driver/EthercatDriver</plugin>
+      <param name="master_id">0</param>
+      <param name="control_frequency">500</param>
+    </hardware>
+
+    <joint name="Joint1">
+      <command_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="mode_of_operation_display"/>
+      <ec_module name="dual_arm_11">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">0</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_1.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint2">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_12">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">1</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_2.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint3">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_13">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">2</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_3.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint4">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_14">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">3</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_4.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint5">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_15">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">4</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_1.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint6">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_16">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">5</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_6.yaml</param>
+      </ec_module>
+    </joint>
+
+    <joint name="Joint7">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="effort"/>
+      <state_interface name="velocity"/>
+      <ec_module name="dual_arm_17">
+        <plugin>ethercat_generic_plugins/EcCiA402Drive</plugin>
+        <param name="alias">0</param>
+        <param name="position">6</param>
+        <param name="mode_of_operation">8</param>
+        <param name="slave_config">/home/yuilbot1/dualarm_ws/src/dual_arm_driver/config/slave_config/ethercat_slave_joint_7.yaml</param>
+      </ec_module>
+    </joint>
+  </ros2_control>
+</robot>

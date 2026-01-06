@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="single_arm">
+
+  <link name="world"/>
+
+    <!-- Central Base -->
+
+  <link name="central_base">
+    <visual>
+      <origin xyz="0 0 1.0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.2 0.2 0.2"/>  <!-- 20cm x 40cm x 10cm metal base -->
+      </geometry>
+      <material name="metal_grey">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 1.0" />
+      <geometry>
+        <box size="0.2 0.2 0.2"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Fix central base to world -->
+  <joint name="world_to_central_base" type="fixed">
+    <parent link="world"/>
+    <child link="central_base"/>
+    <origin xyz="0 0 0" rpy="0 3.14 0"/>
+  </joint>
+
+  <!-- Left robot mounted 10cm left -->
+  <xacro:include filename="$(find dual_arm_description)/urdf/left_arm.xacro"/>
+  <joint name="central_to_left_base" type="fixed">
+    <parent link="central_base"/>
+    <child link="left_base"/>
+    <origin xyz="-0.105 0.0 1.0" rpy="0.0 -1.57 0.0"/> 
+  </joint>
+
+  <!-- Right robot mounted 10cm right -->
+  <xacro:include filename="$(find dual_arm_description)/urdf/right_arm.xacro"/>
+  <joint name="central_to_right_base" type="fixed">
+    <parent link="central_base"/>
+    <child link="right_base"/>
+    <origin xyz="0.105 0.0 1.0" rpy="0 1.57 0"/>  
+  </joint>
+
+  <!-- Import all robot parts -->
+  <xacro:include filename="$(find dual_arm_description)/urdf/materials.xacro" />
+  <xacro:include filename="$(find dual_arm_description)/urdf/transmissions.xacro" />
+  <xacro:include filename="$(find dual_arm_description)/urdf/ros2_control.xacro" />
+</robot>

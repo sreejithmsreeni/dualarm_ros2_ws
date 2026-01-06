@@ -1,0 +1,13 @@
+# Configuration file for ZERO ERR drive
+vendor_id: 0x00000130
+product_id: 0x01300060
+assign_activate: 0x0000  # DC Synch register
+
+auto_fault_reset: true
+
+      
+sm:  # Sync Manager
+  - {index: 0, type: output, pdo: ~, watchdog: disable}
+  - {index: 1, type: input, pdo: ~, watchdog: disable}
+  - {index: 2, type: output, pdo: rpdo, watchdog: enable}
+  - {index: 3, type: input, pdo: tpdo, watchdog: disable}

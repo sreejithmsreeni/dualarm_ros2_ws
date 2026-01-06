@@ -1,0 +1,50 @@
+# Configuration file for ZERO ERR drive
+vendor_id: 0x00000748
+product_id: 0x00000019
+assign_activate: 0x0300  # DC Synch register
+# dc_sync0_shift: 50000 #ns
+# dc_mode: true
+# # sync0_cycle_time: 2000000 #10ms
+
+# dc_mode: true
+# sync0_cycle_time: 2000000 #10ms
+# sync1_cycle_time: 2000000     # 1ms
+# dc_sync0_shift: 20000         # 20 µs
+# dc_sync1_shift: 500000        # 0.5 ms (typical)
+
+
+# watchdog_timer: true
+# watchdog_timeout: 100000000  
+# auto_enable_set: true
+auto_fault_reset: true
+# auto_state_transitions: true
+
+# sdo:  # sdo data to be transferred at drive startup
+#   - {index: 0x6060, sub_index: 0, type: int8, value: 8} # op
+
+rpdo:
+  - index: 0x1600
+    channels:
+      - {index: 0x6040, sub_index: 0, type: uint16, command_interface: control_word, default: 0}
+      - {index: 0x607a, sub_index: 0, type: int32, command_interface: position, factor: 20028716.7, default: .nan, offset: 0}
+      - {index: 0x6060, sub_index: 0, type: int8, command_interface: mode_of_operation, default: 8}
+      - {index: 0x5ffe, sub_index: 0, type: uint8, default: 0}  # Critical padding
+
+
+tpdo:
+  - index: 0x1A00
+    channels:
+      - {index: 0x6041, sub_index: 0, type: uint16, state_interface: status_word}
+      - {index: 0x6064, sub_index: 0, type: int32, state_interface: position, factor:  0.00000005}
+      - {index: 0x6077, sub_index: 0, type: int16, state_interface: torque}
+      - {index: 0x6061, sub_index: 0, type: int8}   # Mode of operation display
+      - {index: 0x5fff, sub_index: 0, type: uint8, default: 0}  # Dummy Byte (Critical Padding)
+      - {index: 0x603f, sub_index: 0, type: uint16}  # Error Code
+      - {index: 0x60f4, sub_index: 0, type: int32}  # Error Actual Value
+      
+sm:  # Sync Manager
+  - {index: 0, type: output, pdo: ~, watchdog: disable}
+  - {index: 1, type: input, pdo: ~, watchdog: disable}
+  - {index: 2, type: output, pdo: rpdo, watchdog: enable}
+  - {index: 3, type: input, pdo: tpdo, watchdog: disable}
+
