@@ -29,6 +29,32 @@ bool EcCiA402Drive::initialized() const {return initialized_;}
 
 void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 {
+
+
+ static int param_check_counter = 0;
+  if (param_check_counter++ % 100 == 0 && index == 0) {
+    try {
+      // Create temporary node to read parameter
+      rclcpp::NodeOptions options;
+      options.arguments({"--ros-args", "--disable-rosout-logs"});
+      auto temp_node = std::make_shared<rclcpp::Node>(
+        "_param_reader_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
+        options);
+      
+      auto client = std::make_shared<rclcpp::SyncParametersClient>(
+        temp_node, "/controller_manager");
+      
+      if (client->wait_for_service(std::chrono::milliseconds(10))) {
+        if (client->has_parameter("motor_operation_enabled")) {
+          bool new_value = client->get_parameter<bool>("motor_operation_enabled");
+          operation_enabled_allowed_ = new_value;
+        }
+      }
+    } catch (...) {
+      // Silently ignore errors
+    }
+
+  }
   // Special case: ControlWord
   if (pdo_channels_info_[index].index == CiA402D_RPDO_CONTROLWORD) {
     if (is_operational_) {
@@ -139,6 +165,11 @@ bool EcCiA402Drive::setupSlave(
     fault_reset_command_interface_index_ = std::stoi(paramters_["command_interface/reset_fault"]);
   }
 
+  auto node = rclcpp::Node::make_shared("_temp_param_node");
+  node->declare_parameter<bool>("motor_operation_enabled", false);
+  operation_enabled_allowed_ = node->get_parameter("motor_operation_enabled").as_bool();
+  
+  return true;
   return true;
 }
 
@@ -208,10 +239,25 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
       return (control_word & 0b01111110) | 0b00000110;
     case STATE_READY_TO_SWITCH_ON:        // -> STATE_SWITCH_ON
       return (control_word & 0b01110111) | 0b00000111;
-    case STATE_SWITCH_ON:                 // -> STATE_OPERATION_ENABLED
-      return (control_word & 0b01111111) | 0b00001111;
-    case STATE_OPERATION_ENABLED:         // -> GOOD
+      
+      //Added for MOtor enable and disable
+    case STATE_SWITCH_ON:
+      // **ADD ONLY THIS IF BLOCK**
+      if (operation_enabled_allowed_) {
+        return (control_word & 0b01111111) | 0b00001111;
+      } else {
+        return (control_word & 0b01110111) | 0b00000111;  // Stay in SWITCH_ON
+      }
+    
+    case STATE_OPERATION_ENABLED:
+      // **ADD ONLY THIS IF BLOCK**
+      if (!operation_enabled_allowed_) {
+        return (control_word & 0b01110111) | 0b00000111;  // Return to SWITCH_ON
+      }
       return control_word;
+
+
+
     case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
       return (control_word & 0b01111111) | 0b00001111;
     case STATE_FAULT_REACTION_ACTIVE:     // -> STATE_FAULT (automatic)

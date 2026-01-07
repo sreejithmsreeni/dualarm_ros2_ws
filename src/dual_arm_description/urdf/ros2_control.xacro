@@ -8,12 +8,17 @@
       <param name="control_frequency">500</param>
     </hardware>
 
+    <gpio name="motor_enable_control">
+      <command_interface name="enable_operation"/>
+      <state_interface name="operation_state"/>
+    </gpio>
+    
     <gpio name="SW4_hub">
       <ec_module name="SW4_hub">
         <plugin>ethercat_generic_plugins/GenericEcSlave</plugin>
         <param name="alias">0</param>
         <param name="position">0</param>
-        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_joint_10.yaml</param>
+        <param name="slave_config">$(find dual_arm_driver)/config/slave_config/ethercat_slave_hub.yaml</param>
       </ec_module>
     </gpio>
 

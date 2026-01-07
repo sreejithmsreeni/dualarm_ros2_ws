@@ -9,6 +9,17 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(ethercat_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
+
+add_executable(motor_enable_service src/motor_enable_service.cpp)
+ament_target_dependencies(
+  motor_enable_service
+  "rclcpp"
+  "std_srvs"
+  "controller_manager_msgs"
+)
+install(TARGETS motor_enable_service DESTINATION lib/${PROJECT_NAME})
 
 install(
   DIRECTORY config/

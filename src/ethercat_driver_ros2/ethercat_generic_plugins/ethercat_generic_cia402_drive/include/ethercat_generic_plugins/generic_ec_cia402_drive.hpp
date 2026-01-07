@@ -21,7 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <limits>
-
+#include <rclcpp/rclcpp.hpp>
 #include "yaml-cpp/yaml.h"
 #include "ethercat_interface/ec_slave.hpp"
 #include "ethercat_interface/ec_pdo_channel_manager.hpp"
@@ -41,6 +41,20 @@ public:
   bool initialized() const;
 
   virtual void processData(size_t index, uint8_t * domain_address);
+
+  //added for motor enable/disable
+  void setOperationEnabled(bool enabled) {
+    operation_enabled_allowed_ = enabled;
+  }
+
+  bool isOperationEnabled() const {
+    return operation_enabled_allowed_;
+  }
+
+  DeviceState getCurrentState() const {
+    return state_;
+  }
+
 
   virtual bool setupSlave(
     std::unordered_map<std::string, std::string> slave_paramters,
@@ -74,6 +88,7 @@ protected:
   bool setup_from_config(YAML::Node drive_config);
   /** set up of the drive configuration from yaml file*/
   bool setup_from_config_file(std::string config_file);
+  std::atomic<bool> operation_enabled_allowed_{false};
 };
 }  // namespace ethercat_generic_plugins
 
