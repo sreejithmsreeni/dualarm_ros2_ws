@@ -230,6 +230,15 @@ DeviceState EcCiA402Drive::deviceState(uint16_t status_word)
 /** returns the control word that will take device from state to next desired state */
 uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 {
+
+  static DeviceState last_printed_state = STATE_UNDEFINED;
+  
+  // Only print when state changes to avoid log spam
+  if (state != last_printed_state) {
+    std::cout << "[CiA402 Transition] Current State: " << DEVICE_STATE_STR.at(state) << std::endl;
+    last_printed_state = state;
+  }
+
   switch (state) {
     case STATE_START:                     // -> STATE_NOT_READY_TO_SWITCH_ON (automatic)
       return control_word;
@@ -244,19 +253,21 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
     case STATE_SWITCH_ON:
       // **ADD ONLY THIS IF BLOCK**
       if (operation_enabled_allowed_) {
+        std::cout << "[CiA402] STATE_SWITCH_ON: operation_enabled_allowed_=TRUE -> Transitioning to OPERATION_ENABLED (0x000F)" << std::endl;
         return (control_word & 0b01111111) | 0b00001111;
       } else {
+        std::cout << "[CiA402] STATE_SWITCH_ON: operation_enabled_allowed_=FALSE -> Staying in SWITCH_ON (0x0007)" << std::endl;
         return (control_word & 0b01110111) | 0b00000111;  // Stay in SWITCH_ON
       }
-    
+
     case STATE_OPERATION_ENABLED:
       // **ADD ONLY THIS IF BLOCK**
       if (!operation_enabled_allowed_) {
+        std::cout << "[CiA402] STATE_OPERATION_ENABLED: operation_enabled_allowed_=FALSE -> Returning to SWITCH_ON (0x0007)" << std::endl;
         return (control_word & 0b01110111) | 0b00000111;  // Return to SWITCH_ON
       }
+      // std::cout << "[CiA402] STATE_OPERATION_ENABLED: operation_enabled_allowed_=TRUE -> Staying in OPERATION_ENABLED" << std::endl;
       return control_word;
-
-
 
     case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
       return (control_word & 0b01111111) | 0b00001111;

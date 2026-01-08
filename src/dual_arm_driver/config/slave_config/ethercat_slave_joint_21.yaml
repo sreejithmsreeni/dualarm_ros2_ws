@@ -17,7 +17,7 @@ assign_activate: 0x0300  # DC Synch register
 # watchdog_timeout: 100000000  
 # auto_enable_set: true
 auto_fault_reset: true
-# auto_state_transitions: true
+auto_state_transitions: true
 
 # sdo:  # sdo data to be transferred at drive startup
 #   - {index: 0x6060, sub_index: 0, type: int8, value: 8} # op
