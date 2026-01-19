@@ -2,20 +2,6 @@
 vendor_id: 0x00000748
 product_id: 0x00000019
 assign_activate: 0x0300  # DC Synch register
-# dc_sync0_shift: 50000 #ns
-# dc_mode: true
-# sync0_cycle_time: 2000000 #10ms
-
-# dc_mode: true
-# sync0_cycle_time: 2000000 #10ms
-# sync1_cycle_time: 2000000     # 1ms
-# dc_sync0_shift: 20000         # 20 µs
-# dc_sync1_shift: 500000        # 0.5 ms (typical)
-
-
-# watchdog_timer: true
-# watchdog_timeout: 100000000  
-# auto_enable_set: true
 auto_fault_reset: true
 auto_state_transitions: true
 rpdo:

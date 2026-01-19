@@ -20,6 +20,7 @@ find_package(pluginlib REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 
 file(GLOB_RECURSE PLUGINS_SRC src/*.cpp)
 add_library(${PROJECT_NAME} ${PLUGINS_SRC})
@@ -36,6 +37,7 @@ ament_target_dependencies(
   ethercat_generic_slave
   pluginlib
   yaml_cpp_vendor
+  std_msgs
   yaml-cpp
 )
 

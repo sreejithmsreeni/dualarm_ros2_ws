@@ -25,7 +25,7 @@ vendor_id: 0x00000011
 product_id: 0x07030924
 assign_activate: 0x0321  # DC Synch register
 period: 100  # Hz
-auto_fault_reset: false  # true = automatic fault reset, false = fault reset on rising edge command interface "reset_fault"
+auto_fault_reset: true  # true = automatic fault reset, false = fault reset on rising edge command interface "reset_fault"
 sdo:  # sdo data to be transferred at drive startup
   - {index: 0x60C2, sub_index: 1, type: int8, value: 10} # Set interpolation time for cyclic modes to 10 ms
   - {index: 0x60C2, sub_index: 2, type: int8, value: -3} # Set base 10-3s

@@ -28,6 +28,7 @@
 #include "ethercat_generic_plugins/generic_ec_slave.hpp"
 #include "ethercat_generic_plugins/cia402_common_defs.hpp"
 
+#include <std_msgs/msg/bool.hpp> 
 namespace ethercat_generic_plugins
 {
 
@@ -88,7 +89,8 @@ protected:
   bool setup_from_config(YAML::Node drive_config);
   /** set up of the drive configuration from yaml file*/
   bool setup_from_config_file(std::string config_file);
-  std::atomic<bool> operation_enabled_allowed_{false};
+
+  bool operation_enabled_allowed_{false};
 };
 }  // namespace ethercat_generic_plugins
 

@@ -15,7 +15,7 @@
 // Author: Maciej Bednarczyk (macbednarczyk@gmail.com)
 
 #include <numeric>
-
+#include <fstream>
 #include "ethercat_generic_plugins/generic_ec_cia402_drive.hpp"
 
 namespace ethercat_generic_plugins
@@ -29,32 +29,43 @@ bool EcCiA402Drive::initialized() const {return initialized_;}
 
 void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 {
-
-
- static int param_check_counter = 0;
-  if (param_check_counter++ % 100 == 0 && index == 0) {
-    try {
-      // Create temporary node to read parameter
-      rclcpp::NodeOptions options;
-      options.arguments({"--ros-args", "--disable-rosout-logs"});
-      auto temp_node = std::make_shared<rclcpp::Node>(
-        "_param_reader_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
-        options);
-      
-      auto client = std::make_shared<rclcpp::SyncParametersClient>(
-        temp_node, "/controller_manager");
-      
-      if (client->wait_for_service(std::chrono::milliseconds(10))) {
-        if (client->has_parameter("motor_operation_enabled")) {
-          bool new_value = client->get_parameter<bool>("motor_operation_enabled");
-          operation_enabled_allowed_ = new_value;
+  if (index == 0) {
+    static bool last_stable_value = false;
+    static bool pending_value = false;
+    static int stable_counter = 0;
+    static int read_counter = 0;
+    
+    // Only read file every 50 cycles (reduces I/O overhead)
+    if (read_counter++ % 50 == 0) {
+      std::ifstream file("/tmp/motor_enable_state");
+      if (file.is_open()) {
+        std::string value;
+        file >> value;
+        bool new_file_value = (value == "1");
+        file.close();
+        
+        // Debounce: value must be stable for 5 consecutive reads
+        if (new_file_value == pending_value) {
+          stable_counter++;
+          if (stable_counter >= 5) {
+            // Value has been stable, commit the change
+            if (last_stable_value != new_file_value) {
+              std::cout << ">>>>> [FILE] Stable change: " << last_stable_value 
+                        << " -> " << new_file_value << std::endl;
+              last_stable_value = new_file_value;
+              operation_enabled_allowed_ = new_file_value;
+            }
+          }
+        } else {
+          // Value changed, reset debounce
+          pending_value = new_file_value;
+          stable_counter = 0;
         }
       }
-    } catch (...) {
-      // Silently ignore errors
     }
-
   }
+
+
   // Special case: ControlWord
   if (pdo_channels_info_[index].index == CiA402D_RPDO_CONTROLWORD) {
     if (is_operational_) {
@@ -165,11 +176,10 @@ bool EcCiA402Drive::setupSlave(
     fault_reset_command_interface_index_ = std::stoi(paramters_["command_interface/reset_fault"]);
   }
 
-  auto node = rclcpp::Node::make_shared("_temp_param_node");
-  node->declare_parameter<bool>("motor_operation_enabled", false);
-  operation_enabled_allowed_ = node->get_parameter("motor_operation_enabled").as_bool();
+  // auto node = rclcpp::Node::make_shared("_temp_param_node");
+  // node->declare_parameter<bool>("motor_operation_enabled", false);
+  // operation_enabled_allowed_ = node->get_parameter("motor_operation_enabled").as_bool();
   
-  return true;
   return true;
 }
 
@@ -227,56 +237,71 @@ DeviceState EcCiA402Drive::deviceState(uint16_t status_word)
   return STATE_UNDEFINED;
 }
 
-/** returns the control word that will take device from state to next desired state */
 uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 {
-
+  static bool allow_one_time_enable = true;
   static DeviceState last_printed_state = STATE_UNDEFINED;
   
-  // Only print when state changes to avoid log spam
+  // Print state changes with more detail
   if (state != last_printed_state) {
-    std::cout << "[CiA402 Transition] Current State: " << DEVICE_STATE_STR.at(state) << std::endl;
+    std::cout << "[CiA402] State: " << DEVICE_STATE_STR.at(state) 
+              << " | allow_one_time=" << allow_one_time_enable 
+              << " | op_enabled_allowed=" << operation_enabled_allowed_ << std::endl;
     last_printed_state = state;
   }
-
+  
   switch (state) {
-    case STATE_START:                     // -> STATE_NOT_READY_TO_SWITCH_ON (automatic)
+    case STATE_START:
       return control_word;
-    case STATE_NOT_READY_TO_SWITCH_ON:    // -> STATE_SWITCH_ON_DISABLED (automatic)
+    case STATE_NOT_READY_TO_SWITCH_ON:
       return control_word;
-    case STATE_SWITCH_ON_DISABLED:        // -> STATE_READY_TO_SWITCH_ON
+    case STATE_SWITCH_ON_DISABLED:
       return (control_word & 0b01111110) | 0b00000110;
-    case STATE_READY_TO_SWITCH_ON:        // -> STATE_SWITCH_ON
+    case STATE_READY_TO_SWITCH_ON:
       return (control_word & 0b01110111) | 0b00000111;
-      
-      //Added for MOtor enable and disable
+    
     case STATE_SWITCH_ON:
-      // **ADD ONLY THIS IF BLOCK**
-      if (operation_enabled_allowed_) {
-        std::cout << "[CiA402] STATE_SWITCH_ON: operation_enabled_allowed_=TRUE -> Transitioning to OPERATION_ENABLED (0x000F)" << std::endl;
+      std::cout << "  [SWITCH_ON] Checking: allow_one_time=" << allow_one_time_enable 
+                << " OR op_enabled=" << operation_enabled_allowed_ << std::endl;
+      
+      if (allow_one_time_enable || operation_enabled_allowed_) {
+        std::cout << "    -> Sending ENABLE (0x000F)" << std::endl;
         return (control_word & 0b01111111) | 0b00001111;
       } else {
-        std::cout << "[CiA402] STATE_SWITCH_ON: operation_enabled_allowed_=FALSE -> Staying in SWITCH_ON (0x0007)" << std::endl;
-        return (control_word & 0b01110111) | 0b00000111;  // Stay in SWITCH_ON
+        std::cout << "    -> Staying SWITCH_ON (0x0007)" << std::endl;
+        return (control_word & 0b01110111) | 0b00000111;
       }
-
+    
     case STATE_OPERATION_ENABLED:
-      // **ADD ONLY THIS IF BLOCK**
-      if (!operation_enabled_allowed_) {
-        std::cout << "[CiA402] STATE_OPERATION_ENABLED: operation_enabled_allowed_=FALSE -> Returning to SWITCH_ON (0x0007)" << std::endl;
-        return (control_word & 0b01110111) | 0b00000111;  // Return to SWITCH_ON
+      std::cout << "  [OP_ENABLED] allow_one_time=" << allow_one_time_enable 
+                << " | op_enabled=" << operation_enabled_allowed_ << std::endl;
+      
+      if (allow_one_time_enable) {
+        std::cout << "    -> First time in OP_ENABLED, clearing one-time flag" << std::endl;
+        allow_one_time_enable = false;
+        
+        if (!operation_enabled_allowed_) {
+          std::cout << "    -> op_enabled=FALSE, dropping to SWITCH_ON" << std::endl;
+          return (control_word & 0b01110111) | 0b00000111;
+        }
       }
-      // std::cout << "[CiA402] STATE_OPERATION_ENABLED: operation_enabled_allowed_=TRUE -> Staying in OPERATION_ENABLED" << std::endl;
+      
+      if (!operation_enabled_allowed_) {
+        std::cout << "    -> op_enabled=FALSE, dropping to SWITCH_ON" << std::endl;
+        return (control_word & 0b01110111) | 0b00000111;
+      }
+      
+      std::cout << "    -> Staying in OP_ENABLED" << std::endl;
       return control_word;
-
-    case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
+    
+    case STATE_QUICK_STOP_ACTIVE:
       return (control_word & 0b01111111) | 0b00001111;
-    case STATE_FAULT_REACTION_ACTIVE:     // -> STATE_FAULT (automatic)
+    case STATE_FAULT_REACTION_ACTIVE:
       return control_word;
-    case STATE_FAULT:                     // -> STATE_SWITCH_ON_DISABLED
+    case STATE_FAULT:
       if (auto_fault_reset_ || fault_reset_) {
         fault_reset_ = false;
-        return (control_word & 0b11111111) | 0b10000000;     // automatic reset
+        return (control_word & 0b11111111) | 0b10000000;
       } else {
         return control_word;
       }
@@ -285,6 +310,7 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
   }
   return control_word;
 }
+
 
 }  // namespace ethercat_generic_plugins
 

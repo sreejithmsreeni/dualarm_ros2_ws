@@ -15,7 +15,7 @@ assign_activate: 0x0300  # DC Synch register
 
 # watchdog_timer: true
 # watchdog_timeout: 100000000  
-# auto_enable_set: true
+auto_enable_set: true
 auto_fault_reset: true
 auto_state_transitions: true
 rpdo:
