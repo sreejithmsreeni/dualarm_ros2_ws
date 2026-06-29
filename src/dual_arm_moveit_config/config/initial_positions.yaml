@@ -1,4 +1,4 @@
-# Default initial positions for single_arm's ros2_control fake system
+# Default initial positions for dual_arm's ros2_control fake system
 
 initial_positions:
   left_joint1: 0

@@ -23,17 +23,17 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
-    # left_arm_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["left_arm_controller", "--controller-manager", "/controller_manager"],
-    # )
+    left_arm_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["left_arm_controller", "--controller-manager", "/controller_manager"],
+    )
 
-    # right_arm_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["right_arm_controller", "--controller-manager", "/controller_manager"],
-    # )
+    right_arm_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["right_arm_controller", "--controller-manager", "/controller_manager"],
+    )
 
     dual_arm_spawner = Node(
         package="controller_manager",

@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="single_arm">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_arm">
+
+  <xacro:arg name="use_gazebo_control" default="false"/>
 
   <link name="world"/>
 
@@ -11,10 +13,12 @@
       <geometry>
         <box size="0.2 0.2 0.2"/>  <!-- 20cm x 40cm x 10cm metal base -->
       </geometry>
-      <material name="metal_grey">
-        <color rgba="0.6 0.6 0.6 1.0"/>
+      <material name="black">
+        <ambient>0 0 0 1</ambient>
+        <diffuse>0 0 0 1</diffuse>
       </material>
     </visual>
+    
     <collision>
       <origin xyz="0 0 1.0" />
       <geometry>
@@ -22,6 +26,14 @@
       </geometry>
     </collision>
   </link>
+  <gazebo reference="central_base">
+    <material>
+      <ambient>0.0 0.0 0.0 1</ambient>
+      <diffuse>0.0 0.0 0.0 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <emissive>0.0 0.0 0.0 1</emissive>
+    </material>
+  </gazebo>
 
   <!-- Fix central base to world -->
   <joint name="world_to_central_base" type="fixed">
@@ -48,6 +60,9 @@
 
   <!-- Import all robot parts -->
   <xacro:include filename="$(find dual_arm_description)/urdf/materials.xacro" />
-  <xacro:include filename="$(find dual_arm_description)/urdf/transmissions.xacro" />
-  <xacro:include filename="$(find dual_arm_description)/urdf/ros2_control.xacro" />
+  <!-- <xacro:include filename="$(find dual_arm_description)/urdf/ros2_control.xacro" /> -->
+  <xacro:if value="$(arg use_gazebo_control)">
+    <xacro:include filename="$(find dual_arm_description)/urdf/ros2_gazebo_control.xacro" />
+  </xacro:if>
+
 </robot>

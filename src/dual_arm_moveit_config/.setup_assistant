@@ -3,11 +3,11 @@ moveit_setup_assistant_config:
     package: dual_arm_description
     relative_path: urdf/dual_arm.urdf.xacro
   srdf:
-    relative_path: config/single_arm.srdf
+    relative_path: config/dual_arm.srdf
   package_settings:
     author_name: sreejith
     author_email: sreejith@yuilrobotics.com
-    generated_timestamp: 1761112678
+    generated_timestamp: 1781156504
   control_xacro:
     command:
       - position

@@ -2,7 +2,7 @@
 #include <vector>
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
-#include <moveit/move_group_interface/move_group_interface.hpp>
+#include <moveit/move_group_interface/move_group_interface.h>
 
 int main(int argc, char * argv[])
 {
@@ -25,13 +25,13 @@ int main(int argc, char * argv[])
   arm_group_interface.setPlanningTime(5.0);
   
   // Set velocity and acceleration scaling factors
-  arm_group_interface.setMaxVelocityScalingFactor(0.1);
-  arm_group_interface.setMaxAccelerationScalingFactor(0.1); 
+  arm_group_interface.setMaxVelocityScalingFactor(1.0);
+  arm_group_interface.setMaxAccelerationScalingFactor(0.5); 
 
   // Log settings
   RCLCPP_INFO(logger, "Planning pipeline: %s", arm_group_interface.getPlanningPipelineId().c_str());
   RCLCPP_INFO(logger, "Planner ID: %s", arm_group_interface.getPlannerId().c_str());
-  RCLCPP_INFO(logger, "Max acceleration scaling: %.2f", arm_group_interface.getMaxAccelerationScalingFactor());
+  // RCLCPP_INFO(logger, "Max acceleration scaling: %.2f", arm_group_interface.getMaxAccelerationScalingFactor());
 
   // --- Main Loop for Pose Cycling ---
   
@@ -51,8 +51,6 @@ int main(int argc, char * argv[])
 
     // Plan to the named pose
     auto const [success, plan] = [&arm_group_interface] {
-      
-      
       moveit::planning_interface::MoveGroupInterface::Plan msg;
       auto const ok = static_cast<bool>(arm_group_interface.plan(msg));
       return std::make_pair(ok, msg);
@@ -62,7 +60,6 @@ int main(int argc, char * argv[])
     if (success)
     {
       RCLCPP_INFO(logger, "Planning succeeded! Executing...");
-      rclcpp::sleep_for(std::chrono::seconds(1));
       arm_group_interface.execute(plan);
       RCLCPP_INFO(logger, "Reached pose: '%s'", target_pose.c_str());
     }

@@ -28,6 +28,6 @@
   <xacro:joint_transmission joint_name="right_joint4"/>
   <xacro:joint_transmission joint_name="right_joint5"/>
   <xacro:joint_transmission joint_name="right_joint6"/>
-  <xacro:joint_transmission joint_name="right_joint7"/>  
+  <xacro:joint_transmission joint_name="right_joint7"/>
 
 </robot>

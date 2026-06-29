@@ -16,7 +16,7 @@ find_package(xacro REQUIRED)
 
 # Install the directories containing your robot description files
 install(
-  DIRECTORY urdf meshes
+  DIRECTORY urdf launch meshes
   DESTINATION share/${PROJECT_NAME}
 )
 

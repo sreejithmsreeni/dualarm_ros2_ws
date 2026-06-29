@@ -16,4 +16,8 @@
   <material name="white">
     <color rgba="0.0 0.0 0.0 0.0"/>
   </material>
+
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0"/>
+  </material>
 </robot>
