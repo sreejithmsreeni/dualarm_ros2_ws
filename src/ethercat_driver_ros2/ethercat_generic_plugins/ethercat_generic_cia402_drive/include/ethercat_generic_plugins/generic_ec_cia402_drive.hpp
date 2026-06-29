@@ -91,6 +91,13 @@ protected:
   bool setup_from_config_file(std::string config_file);
 
   bool operation_enabled_allowed_{false};
+  // Per-drive state for file debounce and state-machine gating.
+  bool file_last_stable_value_{false};
+  bool file_pending_value_{false};
+  int file_stable_counter_{0};
+  int file_read_counter_{0};
+  bool allow_one_time_enable_{true};
+  DeviceState last_printed_state_{STATE_UNDEFINED};
 };
 }  // namespace ethercat_generic_plugins
 

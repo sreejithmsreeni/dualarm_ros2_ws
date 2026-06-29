@@ -22,8 +22,8 @@ find_package(yaml-cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
-file(GLOB_RECURSE PLUGINS_SRC src/*.cpp)
-add_library(${PROJECT_NAME} ${PLUGINS_SRC})
+# List sources explicitly. GLOB would pick up backup copies (e.g. *copy.cpp) and cause duplicate symbols.
+add_library(${PROJECT_NAME} src/generic_ec_cia402_drive.cpp)
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

@@ -17,6 +17,8 @@
 #include <tinyxml2.h>
 #include <string>
 #include <regex>
+#include <algorithm>
+#include <cmath>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -174,6 +176,7 @@ CallbackReturn EthercatDriver::on_init(
   }
 
   RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "Got %li modules", ec_modules_.size());
+  cacheCouplingJointIndices();
 
   return CallbackReturn::SUCCESS;
 }
@@ -392,9 +395,86 @@ hardware_interface::return_type EthercatDriver::write(
   // try to lock so we can avoid blocking the read/write loop on the lock.
   const std::unique_lock<std::mutex> lock(ec_mutex_, std::try_to_lock);
   if (lock.owns_lock() && activated_) {
+    applyJ6J7CouplingLimits();
     master_.writeData();
   }
   return hardware_interface::return_type::OK;
+}
+
+void EthercatDriver::cacheCouplingJointIndices()
+{
+  left_joint6_index_ = -1;
+  left_joint7_index_ = -1;
+  right_joint6_index_ = -1;
+  right_joint7_index_ = -1;
+
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    const auto & name = info_.joints[i].name;
+    if (name == "left_joint6") {
+      left_joint6_index_ = static_cast<int>(i);
+    } else if (name == "left_joint7") {
+      left_joint7_index_ = static_cast<int>(i);
+    } else if (name == "right_joint6") {
+      right_joint6_index_ = static_cast<int>(i);
+    } else if (name == "right_joint7") {
+      right_joint7_index_ = static_cast<int>(i);
+    }
+  }
+
+  if (left_joint6_index_ >= 0 && left_joint7_index_ >= 0) {
+    RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "Detected left J6/J7 for coupling limits");
+  }
+  if (right_joint6_index_ >= 0 && right_joint7_index_ >= 0) {
+    RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "Detected right J6/J7 for coupling limits");
+  }
+}
+
+void EthercatDriver::applyJ6J7CouplingLimits()
+{
+  // From user-provided coupling chart (degrees):
+  // upper(x) =  0.0214*x^2 - 2.4975*|x| + 106.1239
+  // lower(x) = -0.0214*x^2 + 2.4975*|x| - 106.124
+  // plus physical J7 hard limit of [-90, 90] degrees.
+  constexpr double RAD2DEG = 180.0 / M_PI;
+  constexpr double DEG2RAD = M_PI / 180.0;
+
+  auto clamp_arm = [&](int j6_idx, int j7_idx) {
+      if (j6_idx < 0 || j7_idx < 0) {
+        return;
+      }
+      if (hw_joint_commands_[j6_idx].empty() || hw_joint_commands_[j7_idx].empty()) {
+        return;
+      }
+
+      const double j6_cmd_rad = hw_joint_commands_[j6_idx][0];
+      double & j7_cmd_rad = hw_joint_commands_[j7_idx][0];
+      if (!std::isfinite(j6_cmd_rad) || !std::isfinite(j7_cmd_rad)) {
+        return;
+      }
+
+      const double x_deg = j6_cmd_rad * RAD2DEG;
+      const double abs_x = std::abs(x_deg);
+      const double upper_curve = 0.0214 * x_deg * x_deg - 2.4975 * abs_x + 106.1239;
+      const double lower_curve = -0.0214 * x_deg * x_deg + 2.4975 * abs_x - 106.124;
+      const double upper_deg = std::min(90.0, upper_curve);
+      const double lower_deg = std::max(-90.0, lower_curve);
+
+      const double j7_cmd_deg = j7_cmd_rad * RAD2DEG;
+      const double j7_clamped_deg = std::clamp(j7_cmd_deg, lower_deg, upper_deg);
+      if (j7_clamped_deg != j7_cmd_deg) {
+        j7_cmd_rad = j7_clamped_deg * DEG2RAD;
+        ++coupling_limit_event_count_;
+        if (coupling_limit_event_count_ % 500 == 1) {
+          RCLCPP_WARN(
+            rclcpp::get_logger("EthercatDriver"),
+            "Applied J6/J7 coupling limit (%u events so far)",
+            coupling_limit_event_count_);
+        }
+      }
+    };
+
+  clamp_arm(left_joint6_index_, left_joint7_index_);
+  clamp_arm(right_joint6_index_, right_joint7_index_);
 }
 
 std::vector<std::unordered_map<std::string, std::string>> EthercatDriver::getEcModuleParam(

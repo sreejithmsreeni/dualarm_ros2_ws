@@ -30,13 +30,8 @@ bool EcCiA402Drive::initialized() const {return initialized_;}
 void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 {
   if (index == 0) {
-    static bool last_stable_value = false;
-    static bool pending_value = false;
-    static int stable_counter = 0;
-    static int read_counter = 0;
-    
     // Only read file every 50 cycles (reduces I/O overhead)
-    if (read_counter++ % 50 == 0) {
+    if (file_read_counter_++ % 50 == 0) {
       std::ifstream file("/tmp/motor_enable_state");
       if (file.is_open()) {
         std::string value;
@@ -45,21 +40,21 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         file.close();
         
         // Debounce: value must be stable for 5 consecutive reads
-        if (new_file_value == pending_value) {
-          stable_counter++;
-          if (stable_counter >= 5) {
+        if (new_file_value == file_pending_value_) {
+          file_stable_counter_++;
+          if (file_stable_counter_ >= 5) {
             // Value has been stable, commit the change
-            if (last_stable_value != new_file_value) {
-              std::cout << ">>>>> [FILE] Stable change: " << last_stable_value 
+            if (file_last_stable_value_ != new_file_value) {
+              std::cout << ">>>>> [FILE] Stable change: " << file_last_stable_value_
                         << " -> " << new_file_value << std::endl;
-              last_stable_value = new_file_value;
+              file_last_stable_value_ = new_file_value;
               operation_enabled_allowed_ = new_file_value;
             }
           }
         } else {
           // Value changed, reset debounce
-          pending_value = new_file_value;
-          stable_counter = 0;
+          file_pending_value_ = new_file_value;
+          file_stable_counter_ = 0;
         }
       }
     }
@@ -239,15 +234,12 @@ DeviceState EcCiA402Drive::deviceState(uint16_t status_word)
 
 uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 {
-  static bool allow_one_time_enable = true;
-  static DeviceState last_printed_state = STATE_UNDEFINED;
-  
   // Print state changes with more detail
-  if (state != last_printed_state) {
+  if (state != last_printed_state_) {
     std::cout << "[CiA402] State: " << DEVICE_STATE_STR.at(state) 
-              << " | allow_one_time=" << allow_one_time_enable 
+              << " | allow_one_time=" << allow_one_time_enable_
               << " | op_enabled_allowed=" << operation_enabled_allowed_ << std::endl;
-    last_printed_state = state;
+    last_printed_state_ = state;
   }
   
   switch (state) {
@@ -261,37 +253,22 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
       return (control_word & 0b01110111) | 0b00000111;
     
     case STATE_SWITCH_ON:
-      std::cout << "  [SWITCH_ON] Checking: allow_one_time=" << allow_one_time_enable 
-                << " OR op_enabled=" << operation_enabled_allowed_ << std::endl;
-      
-      if (allow_one_time_enable || operation_enabled_allowed_) {
-        std::cout << "    -> Sending ENABLE (0x000F)" << std::endl;
-        return (control_word & 0b01111111) | 0b00001111;
-      } else {
-        std::cout << "    -> Staying SWITCH_ON (0x0007)" << std::endl;
-        return (control_word & 0b01110111) | 0b00000111;
+      // Do not log every cycle here — transition() runs at EtherCAT rate and would flood the console.
+      if (allow_one_time_enable_ || operation_enabled_allowed_) {
+        return (control_word & 0b01111111) | 0b00001111;  // enable operation (0x000F base bits)
       }
-    
+      return (control_word & 0b01110111) | 0b00000111;  // stay Switch On (0x0007) until allowed
+
     case STATE_OPERATION_ENABLED:
-      std::cout << "  [OP_ENABLED] allow_one_time=" << allow_one_time_enable 
-                << " | op_enabled=" << operation_enabled_allowed_ << std::endl;
-      
-      if (allow_one_time_enable) {
-        std::cout << "    -> First time in OP_ENABLED, clearing one-time flag" << std::endl;
-        allow_one_time_enable = false;
-        
+      if (allow_one_time_enable_) {
+        allow_one_time_enable_ = false;
         if (!operation_enabled_allowed_) {
-          std::cout << "    -> op_enabled=FALSE, dropping to SWITCH_ON" << std::endl;
-          return (control_word & 0b01110111) | 0b00000111;
+          return (control_word & 0b01110111) | 0b00000111;  // drop to Switch On
         }
       }
-      
       if (!operation_enabled_allowed_) {
-        std::cout << "    -> op_enabled=FALSE, dropping to SWITCH_ON" << std::endl;
         return (control_word & 0b01110111) | 0b00000111;
       }
-      
-      std::cout << "    -> Staying in OP_ENABLED" << std::endl;
       return control_word;
     
     case STATE_QUICK_STOP_ACTIVE:

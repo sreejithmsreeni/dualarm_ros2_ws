@@ -68,6 +68,8 @@ public:
 private:
   std::vector<std::unordered_map<std::string, std::string>> getEcModuleParam(
     std::string & urdf, std::string component_name, std::string component_type);
+  void cacheCouplingJointIndices();
+  void applyJ6J7CouplingLimits();
 
   std::vector<std::shared_ptr<ethercat_interface::EcSlave>> ec_modules_;
   std::vector<std::unordered_map<std::string, std::string>> ec_module_parameters_;
@@ -87,6 +89,11 @@ private:
   std::mutex ec_mutex_;
   bool activated_;
   bool position_latched_;
+  int left_joint6_index_{-1};
+  int left_joint7_index_{-1};
+  int right_joint6_index_{-1};
+  int right_joint7_index_{-1};
+  uint32_t coupling_limit_event_count_{0};
 };
 }  // namespace ethercat_driver
 
